@@ -60,5 +60,6 @@ typedef NS_ENUM(NSUInteger, MPCodeBlockAccessoryType)
 - (BOOL)rendererHasMathJax:(MPRenderer *)renderer;
 - (NSString *)rendererHighlightingThemeName:(MPRenderer *)renderer;
 - (void)renderer:(MPRenderer *)renderer didProduceHTMLOutput:(NSString *)html;
+- (void)rendererStyleDidChange:(MPRenderer *)renderer;
 
 @end

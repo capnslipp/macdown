@@ -204,6 +204,7 @@ NS_INLINE BOOL MPAreNilableStringsEqual(NSString *s1, NSString *s2)
 
 @property (strong) NSMutableArray *currentLanguages;
 @property (readonly) NSArray *baseStylesheets;
+@property (readonly) NSArray *baseStylesheetsHashes;
 @property (readonly) NSArray *prismStylesheets;
 @property (readonly) NSArray *prismScripts;
 @property (readonly) NSArray *mathjaxScripts;
@@ -211,6 +212,7 @@ NS_INLINE BOOL MPAreNilableStringsEqual(NSString *s1, NSString *s2)
 @property (readonly) NSArray *mermaidScripts;
 @property (readonly) NSArray *graphvizScripts;
 @property (readonly) NSArray *stylesheets;
+@property NSUInteger stylesheetsHash;
 @property (readonly) NSArray *scripts;
 @property (copy) NSString *currentHtml;
 @property (strong) NSOperationQueue *parseQueue;
@@ -356,6 +358,14 @@ NS_INLINE void MPFreeHTMLRenderer(hoedown_renderer *htmlRenderer)
 }
 
 #pragma mark - Accessor
+
+- (NSUInteger)hashForStylesheets:(NSArray *)stylesheets
+{
+    NSUInteger value = 0;
+    for (MPStyleSheet *stylesheet in stylesheets)
+        value += stylesheet.fileHash;
+    return value;
+}
 
 - (NSArray *)baseStylesheets
 {
@@ -644,11 +654,17 @@ NS_INLINE void MPFreeHTMLRenderer(hoedown_renderer *htmlRenderer)
     id<MPRendererDelegate> delegate = self.delegate;
 
     NSString *title = [self.dataSource rendererHTMLTitle:self];
+    NSArray *stylesheets = self.stylesheets;
     NSString *html = MPGetHTML(
         title, self.currentHtml, self.stylesheets, MPAssetFullLink,
         self.scripts, MPAssetFullLink);
     [delegate renderer:self didProduceHTMLOutput:html];
 
+    NSUInteger stylesheetsHash = [self hashForStylesheets:stylesheets];
+    if (stylesheetsHash != self.stylesheetsHash)
+        [self.delegate rendererStyleDidChange:self];
+    self.stylesheetsHash = stylesheetsHash;
+    
     self.styleName = [delegate rendererStyleName:self];
     self.syntaxHighlighting = [delegate rendererHasSyntaxHighlighting:self];
     self.mermaid = [delegate rendererHasMermaid:self];

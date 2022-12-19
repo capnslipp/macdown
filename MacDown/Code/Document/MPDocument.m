@@ -200,6 +200,8 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 @property BOOL printing;
 @property BOOL shouldHandleBoundsChange;
 @property BOOL isPreviewReady;
+@property NSColor *previewBackgroundColor;
+@property BOOL needsUpdateOfPreviewBackgroundColor;
 @property (strong) NSURL *currentBaseUrl;
 @property CGFloat lastPreviewScrollTop;
 @property (nonatomic, readonly) BOOL needsHtml;
@@ -400,6 +402,9 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     self.preview.policyDelegate = self;
     self.preview.editingDelegate = self;
     self.preview.resourceLoadDelegate = self;
+    
+    self.preview.wantsLayer = YES;
+    self.needsUpdateOfPreviewBackgroundColor = YES;
 
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(editorTextDidChange:)
@@ -880,6 +885,11 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     }
 
     self.isPreviewReady = YES;
+    
+    if (self.needsUpdateOfPreviewBackgroundColor) {
+        self.previewBackgroundColor = MPGetWebViewBackgroundColor(self.preview);
+        self.preview.layer.backgroundColor = self.previewBackgroundColor.CGColor;
+    }
 
     // Update word count
     if (self.preferences.editorShowWordCount)
@@ -1114,6 +1124,13 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     // Reload the page if there's not valid tree to work with.
     [self.preview.mainFrame loadHTMLString:html baseURL:baseUrl];
     self.currentBaseUrl = baseUrl;
+}
+
+- (void)rendererStyleDidChange:(MPRenderer *)renderer
+{
+    // Queue update of the `previewBackgroundColor`, which'll happen later in
+	// `webView:didFinishLoadForFrame:` when we have the DOM.
+    self.needsUpdateOfPreviewBackgroundColor = YES;
 }
 
 
@@ -1666,13 +1683,8 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 {
     if (!self.editorVisible)
     {
-        // If the editor is not visible, detect preview's background color via
-        // DOM query and use it instead. This is more expensive; we should try
-        // to avoid it.
-        // TODO: Is it possible to cache this until the user switches the style?
-        // Will need to take account of the user MODIFIES the style without
-        // switching. Complicated. This will do for now.
-        self.splitView.dividerColor = MPGetWebViewBackgroundColor(self.preview);
+        // If the editor is not visible, use the preview's background color.
+        self.splitView.dividerColor = self.previewBackgroundColor;
     }
     else if (!self.previewVisible)
     {

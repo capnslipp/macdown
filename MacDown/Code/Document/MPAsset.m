@@ -100,6 +100,21 @@ NSString * const kMPMathJaxConfigType = @"text/x-mathjax-config";
     return result;
 }
 
+- (NSUInteger)fileHash
+{
+    NSUInteger value = 0;
+    
+    value += self.url.hash;
+    
+    NSDictionary<NSFileAttributeKey, id> *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:self.url.path error:NULL];
+    value += (attributes.fileSize % NSUIntegerMax);
+    value += attributes.fileModificationDate.hash;
+    value += attributes.fileCreationDate.hash;
+    value += attributes.fileSystemFileNumber;
+    
+    return value;
+}
+
 @end
 
 

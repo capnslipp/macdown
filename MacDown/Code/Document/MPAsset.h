@@ -25,6 +25,7 @@ extern NSString * const kMPMathJaxConfigType;
 + (instancetype)assetWithURL:(NSURL *)url andType:(NSString *)typeName;
 - (instancetype)initWithURL:(NSURL *)url andType:(NSString *)typeName;
 - (NSString *)htmlForOption:(MPAssetOption)option;
+@property (readonly) NSUInteger fileHash;
 @end
 
 
