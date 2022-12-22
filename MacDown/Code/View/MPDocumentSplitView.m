@@ -11,6 +11,7 @@
 
 static const CGFloat kPartMinimumVisualSize = 150.0; // must be ≥ `kPartSnapToZeroBelowSize`a
 static const CGFloat kPartSnapToZeroBelowSize = 100.0; // must be ≤ `kPartMinimumVisualSize`
+static const CGFloat kDividerStickAtHalfWayGap = 15.0; // Halfway point ± this many pixels
 
 
 
@@ -53,6 +54,7 @@ static const CGFloat kPartSnapToZeroBelowSize = 100.0; // must be ≤ `kPartMini
     
     CGFloat totalWidth = self.bounds.size.width;
     CGFloat usableWidth = totalWidth - self.dividerThickness;
+    CGFloat halfwayPosition = usableWidth * 0.5;
     if (splitPosition < kPartMinimumVisualSize) {
         if (splitPosition < kPartSnapToZeroBelowSize)
             splitPosition = 0;
@@ -64,6 +66,10 @@ static const CGFloat kPartSnapToZeroBelowSize = 100.0; // must be ≤ `kPartMini
             splitPosition = usableWidth;
         else
             splitPosition = usableWidth - kPartMinimumVisualSize;
+    }
+    else if (splitPosition > (halfwayPosition - kDividerStickAtHalfWayGap) &&
+             splitPosition < (halfwayPosition + kDividerStickAtHalfWayGap)) {
+        splitPosition = halfwayPosition;
     }
     return splitPosition;
 }
