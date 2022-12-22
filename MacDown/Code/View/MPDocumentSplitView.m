@@ -9,6 +9,11 @@
 #import "MPDocumentSplitView.h"
 
 
+static const CGFloat kPartMinimumVisualSize = 150.0; // must be ≥ `kPartSnapToZeroBelowSize`a
+static const CGFloat kPartSnapToZeroBelowSize = 100.0; // must be ≤ `kPartMinimumVisualSize`
+
+
+
 @implementation NSColor (Equality)
 
 - (BOOL)isEqualToColor:(NSColor *)color
@@ -38,6 +43,35 @@
         return;
     _dividerColor = color;
     [self setNeedsDisplay:YES];
+}
+
+- (CGFloat)normalizeSplitPosition:(CGFloat)splitPosition
+{
+    NSArray *parts = self.subviews;
+    NSAssert1(parts.count == 2, @"%@ should only be used on two-item splits.",
+              NSStringFromSelector(_cmd));
+    
+    CGFloat totalWidth = self.bounds.size.width;
+    CGFloat usableWidth = totalWidth - self.dividerThickness;
+    if (splitPosition < kPartMinimumVisualSize) {
+        if (splitPosition < kPartSnapToZeroBelowSize)
+            splitPosition = 0;
+        else
+            splitPosition = kPartMinimumVisualSize;
+    }
+    else if (splitPosition > usableWidth - kPartMinimumVisualSize) {
+        if (splitPosition > usableWidth - kPartSnapToZeroBelowSize)
+            splitPosition = usableWidth;
+        else
+            splitPosition = usableWidth - kPartMinimumVisualSize;
+    }
+    return splitPosition;
+}
+
+- (CGFloat)normalizeDividerLocation:(CGFloat)dividerLocation
+{
+    CGFloat usableWidth = self.bounds.size.width - self.dividerThickness;
+    return [self normalizeSplitPosition:(dividerLocation / usableWidth)] * usableWidth;
 }
 
 - (CGFloat)dividerLocation

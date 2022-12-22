@@ -701,6 +701,11 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     self.editor.editable = self.editorVisible;
 }
 
+- (CGFloat)splitView:(NSSplitView *)splitView constrainSplitPosition:(CGFloat)proposedPosition ofSubviewAt:(NSInteger)dividerIndex
+{
+    return [(MPDocumentSplitView *)splitView normalizeSplitPosition:proposedPosition];
+}
+
 
 #pragma mark - NSTextViewDelegate
 

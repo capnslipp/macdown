@@ -10,6 +10,9 @@
 
 @interface MPDocumentSplitView : NSSplitView
 
+- (CGFloat)normalizeSplitPosition:(CGFloat)splitPosition;
+- (CGFloat)normalizeDividerLocation:(CGFloat)dividerLocation;
+
 @property (assign, nonatomic) CGFloat dividerLocation;
 
 - (void)setDividerColor:(NSColor *)color;
